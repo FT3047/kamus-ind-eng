@@ -1,0 +1,8 @@
+body {
+  min-height: 100vh;
+  margin: 0;
+  font-family: 'Inter', Arial, sans-serif;
+  /* Gradient hijau mint-aqua lebih soft & adem */
+  background: linear-gradient(120deg, #e3f8e3 0%, #b3e6d6 55%, #aee9ed 100%);
+  background-attachment: fixed;
+}

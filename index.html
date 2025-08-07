@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Kamus Indo-Inggris & Inggris-Indo | Green Palette + Scraping</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --main-bg: linear-gradient(120deg, #e3f8e3 0%, #b3e6d6 55%, #aee9ed 100%);
+      --card-bg: #ffffff;
+      --primary: #aee9ed;
+      --primary-dark: #90d7e6;
+      --primary-light: #e3f8e3;
+      --accent: #b3e6d6;
+      --pink: #ff7c8c;
+      --green: #b3e6d6;
+      --green-strong: #90d7e6;
+      --text-main: #216e5a;
+      --text-muted: #70a897;
+      --border-soft: #c6ebd9;
+      --shadow-soft: 0 4px 32px rgba(174,233,237,0.10);
+      --radius: 20px;
+      --transition: 0.25s;
+    }
+    [data-theme="dark"] {
+      --main-bg: linear-gradient(120deg, #216e5a 0%, #70a897 100%);
+      --card-bg: #293f37;
+      --primary: #90d7e6;
+      --primary-dark: #70a897;
+      --primary-light: #216e5a;
+      --accent: #b3e6d6;
+      --green: #70a897;
+      --green-strong: #90d7e6;
+      --text-main: #d9ffd9;
+      --text-muted: #e3f8e3;
+      --border-soft: #216e5a;
+      --shadow-soft: 0 4px 32px rgba(174,233,237,0.19);
+    }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      color: var(--text-main);
+      background: var(--main-bg);
+      background-attachment: fixed;
+      transition: background var(--transition), color var(--transition);
+    }
+    .container {
+      max-width: 430px;
+      margin: 50px auto 0 auto;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+      padding: 36px 28px 24px 28px;
+      transition: background var(--transition);
+    }
+    h1 {
+      text-align: center;
+      color: var(--primary-dark);
+      font-size: 2.2rem;
+      margin: 0 0 11px 0;
+      font-weight: 700;
+      letter-spacing: 1px;
+      transition: color var(--transition);
+    }
+    .subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-bottom: 22px;
+      font-weight: 400;
+      transition: color var(--transition);
+    }
+    .lang-toggle-group {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .lang-btn {
+      padding: 8px 18px;
+      background: var(--accent);
+      color: #216e5a;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background var(--transition), color var(--transition);
+    }
+    .lang-btn.active, .lang-btn:hover {
+      background: var(--primary-dark);
+      color: #fff;
+    }
+    .search-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+    .search-bar input {
+      flex: 1;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border-soft);
+      border-radius: 10px;
+      font-size: 1rem;
+      background: var(--primary-light);
+      transition: border var(--transition), background var(--transition);
+      outline: none;
+    }
+    .search-bar input:focus {
+      border-color: var(--primary);
+      background: #fff;
+    }
+    .search-bar button {
+      background: var(--primary);
+      color: #216e5a;
+      font-weight: 500;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 18px;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 2px 12px rgba(174,233,237,0.14);
+      transition: background var(--transition), color var(--transition);
+    }
+    .search-bar button:hover {
+      background: var(--primary-dark);
+      color: #fff;
+    }
+    .result-card {
+      background: linear-gradient(90deg, #e3f8e3 0%, #b3e6d6 100%);
+      border-radius: 14px;
+      box-shadow: 0 2px 10px rgba(174,233,237,0.09);
+      padding: 18px 14px;
+      margin-bottom: 13px;
+      border: 1px solid var(--border-soft);
+      animation: fadeIn 0.6s;
+      transition: background var(--transition);
+    }
+    [data-theme="dark"] .result-card {
+      background: linear-gradient(90deg, #216e5a 0%, #70a897 100%);
+      border: 1px solid var(--border-soft);
+    }
+    .word {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+      letter-spacing: 0.5px;
+      color: var(--green-strong);
+      transition: color var(--transition);
+    }
+    .definition {
+      font-size: 1.03rem;
+      color: var(--text-main);
+      transition: color var(--transition);
+    }
+    .lang-label {
+      font-size: 0.97rem;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+      text-align: center;
+    }
+    .info {
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 32px;
+      font-size: 13px;
+      transition: color var(--transition);
+    }
+    .notfound {
+      text-align: center;
+      color: var(--pink);
+      background: #e3f8e3;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      border: 1px solid #b3e6d6;
+      font-size: 1.04rem;
+      animation: fadeIn 0.5s;
+      transition: background var(--transition), color var(--transition);
+    }
+    [data-theme="dark"] .notfound {
+      background: #216e5a;
+      border: 1px solid #70a897;
+      color: #ff7c8c;
+    }
+    .popular {
+      background: var(--primary-light);
+      border-radius: 13px;
+      padding: 14px 13px 10px 13px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 8px rgba(174,233,237,0.05);
+      border: 1px solid var(--border-soft);
+      transition: background var(--transition);
+    }
+    .popular-title {
+      color: var(--primary-dark);
+      font-weight: 600;
+      font-size: 1.05rem;
+      margin-bottom: 7px;
+      transition: color var(--transition);
+    }
+    .popular-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .popular-list li {
+      background: var(--green);
+      color: #216e5a;
+      border-radius: 7px;
+      padding: 7px 11px;
+      cursor: pointer;
+      font-size: 0.97rem;
+      font-weight: 500;
+      border: none;
+      box-shadow: 0 1px 4px rgba(174,233,237,0.09);
+      transition: background var(--transition), color var(--transition);
+    }
+    .popular-list li:hover {
+      background: var(--primary-dark);
+      color: #fff;
+    }
+    .features {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 13px;
+      justify-content: flex-end;
+    }
+    .features button {
+      background: var(--accent);
+      color: #216e5a;
+      border: none;
+      border-radius: 9px;
+      padding: 8px 16px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.97rem;
+      transition: background var(--transition), color var(--transition);
+      box-shadow: 0 1px 8px rgba(174,233,237,0.09);
+    }
+    .features button:hover {
+      background: var(--green-strong);
+      color: #fff;
+    }
+    .features .darkmode {
+      background: var(--primary-dark);
+      color: #fff;
+    }
+    .features .darkmode:hover {
+      background: #216e5a;
+      color: #fff;
+    }
+    .history {
+      background: #c6ebd9;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #b3e6d6;
+      margin-bottom: 12px;
+      color: #216e5a;
+      font-size: 0.98rem;
+      transition: background var(--transition), color var(--transition);
+      animation: fadeIn 0.5s;
+    }
+    [data-theme="dark"] .history {
+      background: #216e5a;
+      border: 1px solid #70a897;
+      color: #b3e6d6;
+    }
+    .history-clear {
+      background: none;
+      border: none;
+      color: var(--pink);
+      font-size: 0.93rem;
+      cursor: pointer;
+      margin-left: 12px;
+      text-decoration: underline;
+      transition: color var(--transition);
+    }
+    .history-clear:hover {
+      color: #d63864;
+    }
+    /* Index Abjad */
+    .index {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+    .index-btn {
+      padding: 6px 12px;
+      border-radius: 9px;
+      background: var(--accent);
+      color: #216e5a;
+      border: none;
+      font-weight: 500;
+      font-size: 0.98rem;
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+      margin-bottom: 4px;
+    }
+    .index-btn.active, .index-btn:hover {
+      background: var(--primary-dark);
+      color: #fff;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    @media (max-width: 580px) {
+      .container {
+        max-width: 98vw;
+        padding: 18px 6vw;
+      }
+      .features { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="mainContainer">
+    <h1>Kamus Indo-Inggris & Inggris-Indo</h1>
+    <div class="subtitle">
+      Website kamus dua arah dengan palet hijau mint-aqua yang adem<br>
+      <span style="font-size:0.98rem;font-weight:500;color:var(--primary-dark)">
+        Mode: <span id="modeLabel">Indo-Inggris</span>
+      </span>
+    </div>
+    <div class="lang-toggle-group">
+      <button class="lang-btn active" id="btnIndoEng">Indo → Inggris</button>
+      <button class="lang-btn" id="btnEngIndo">Inggris → Indo</button>
+    </div>
+    <div class="features">
+      <button id="randomBtn">Kata Acak</button>
+      <button class="darkmode" id="toggleThemeBtn">Mode Terang/Gelap</button>
+    </div>
+    <form class="search-bar" id="searchForm" autocomplete="off">
+      <input type="text" id="searchInput" placeholder="Cari kata...">
+      <button type="submit">Cari</button>
+    </form>
+    <div class="popular">
+      <div class="popular-title">Kata Populer:</div>
+      <ul class="popular-list" id="popularList">
+        <!-- Diisi JS -->
+      </ul>
+    </div>
+    <div class="index" id="indexBox"></div>
+    <div id="historyBox"></div>
+    <div class="lang-label" id="langLabel"></div>
+    <div id="results"></div>
+    <div class="info">
+      UI hijau mint-aqua adem &mdash; Powered by HTML, CSS, JS<br>
+      Fitur: pencarian dua arah, index abjad, kata acak, kata populer, riwayat, mode gelap/terang, <br>
+      <b>Integrasi database KBBI dan Babla.co.id</b>
+    </div>
+  </div>
+  <script>
+    // Data kamus dua arah (contoh, bisa diperluas)
+    const dictionary = [
+      { indo: "aplikasi", eng: "application" },
+      { indo: "basis data", eng: "database" },
+      { indo: "data", eng: "data" },
+      { indo: "internet", eng: "internet" },
+      { indo: "jaringan", eng: "network" },
+      { indo: "komputer", eng: "computer" },
+      { indo: "pemrograman", eng: "programming" },
+      { indo: "prosesor", eng: "processor" },
+      { indo: "sistem", eng: "system" },
+      { indo: "website", eng: "website" },
+    ];
+
+    let mode = "indo-eng"; // indo-eng atau eng-indo
+    let history = JSON.parse(localStorage.getItem("kamusHistory") || "[]");
+
+    function updateModeLabel() {
+      document.getElementById('modeLabel').textContent = (mode === "indo-eng") ? "Indo-Inggris" : "Inggris-Indo";
+      document.getElementById('langLabel').textContent = (mode === "indo-eng")
+        ? "Ketik kata Indonesia, hasil: English (dari database lokal/KBBI)"
+        : "Type English word, result: Indonesia (dari database lokal/Babla)";
+      document.getElementById("searchInput").placeholder = (mode === "indo-eng")
+        ? "Cari kata Indonesia..."
+        : "Cari kata Inggris...";
+    }
+
+    function renderResults(items, query = "") {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = "";
+      if (items.length === 0) {
+        resultsDiv.innerHTML = `<div class="notfound">Kata tidak ditemukan.</div>`;
+        return;
+      }
+      items.forEach(item => {
+        if (mode === "indo-eng") {
+          resultsDiv.innerHTML += `
+            <div class="result-card">
+              <div class="word">${item.indo}</div>
+              <div class="definition">${item.eng}</div>
+            </div>
+          `;
+        } else {
+          resultsDiv.innerHTML += `
+            <div class="result-card">
+              <div class="word">${item.eng}</div>
+              <div class="definition">${item.indo}</div>
+            </div>
+          `;
+        }
+      });
+    }
+
+    function renderPopular() {
+      const list = document.getElementById("popularList");
+      list.innerHTML = "";
+      let popularWords = [];
+      if (mode === "indo-eng") {
+        popularWords = dictionary.slice(0, 6).map(item => item.indo);
+      } else {
+        popularWords = dictionary.slice(0, 6).map(item => item.eng);
+      }
+      popularWords.forEach(word => {
+        list.innerHTML += `<li onclick="searchWord('${word}')">${word}</li>`;
+      });
+    }
+
+    async function fetchKBBI(word) {
+      try {
+        const response = await fetch(`/api/kbbi?word=${encodeURIComponent(word)}`);
+        if (!response.ok) return null;
+        const data = await response.json();
+        if (data.definition) {
+          return { indo: data.word, eng: `Definisi KBBI: ${data.definition}` };
+        }
+        return null;
+      } catch (err) { return null; }
+    }
+
+    async function fetchBabla(word) {
+      try {
+        const response = await fetch(`/api/babla?word=${encodeURIComponent(word)}`);
+        if (!response.ok) return null;
+        const data = await response.json();
+        if (data.indo) {
+          return { eng: data.eng, indo: `Terjemahan Babla: ${data.indo}` };
+        }
+        return null;
+      } catch (err) { return null; }
+    }
+
+    async function performSearch(query) {
+      query = query.trim().toLowerCase();
+      if (query && !history.includes(query)) {
+        history.unshift(query);
+        if (history.length > 8) history.pop();
+        localStorage.setItem("kamusHistory", JSON.stringify(history));
+      }
+      renderHistory();
+
+      let filtered = [];
+      if (mode === "indo-eng") {
+        filtered = dictionary.filter(item =>
+          item.indo.toLowerCase().includes(query) ||
+          item.eng.toLowerCase().includes(query)
+        );
+        if (filtered.length === 0 && query) {
+          // Coba fetch KBBI
+          const kbbiResult = await fetchKBBI(query);
+          if (kbbiResult) filtered = [kbbiResult];
+        }
+      } else {
+        filtered = dictionary.filter(item =>
+          item.eng.toLowerCase().includes(query) ||
+          item.indo.toLowerCase().includes(query)
+        );
+        if (filtered.length === 0 && query) {
+          // Coba fetch Babla
+          const bablaResult = await fetchBabla(query);
+          if (bablaResult) filtered = [bablaResult];
+        }
+      }
+      renderResults(filtered, query);
+      clearIndexHighlight();
+    }
+
+    function renderHistory() {
+      const box = document.getElementById("historyBox");
+      if (!history.length) {
+        box.innerHTML = "";
+        return;
+      }
+      box.innerHTML = `
+        <div class="history">
+          Riwayat pencarian: ${history.map(h => `<b>${h}</b>`).join(", ")}
+          <button class="history-clear" onclick="clearHistory()">Hapus</button>
+        </div>
+      `;
+    }
+
+    function clearHistory() {
+      history = [];
+      localStorage.setItem("kamusHistory", "[]");
+      renderHistory();
+    }
+
+    async function searchWord(word) {
+      document.getElementById("searchInput").value = word;
+      await performSearch(word);
+      clearIndexHighlight();
+    }
+
+    // Kata acak
+    async function randomWord() {
+      const item = dictionary[Math.floor(Math.random() * dictionary.length)];
+      document.getElementById("searchInput").value = (mode === "indo-eng") ? item.indo : item.eng;
+      await performSearch(document.getElementById("searchInput").value);
+      clearIndexHighlight();
+    }
+
+    // Mode terang/gelap
+    function toggleTheme() {
+      const curTheme = document.body.getAttribute("data-theme");
+      if (curTheme === "dark") {
+        document.body.setAttribute("data-theme", "light");
+        localStorage.setItem("kamusTheme", "light");
+      } else {
+        document.body.setAttribute("data-theme", "dark");
+        localStorage.setItem("kamusTheme", "dark");
+      }
+    }
+    if (localStorage.getItem("kamusTheme") === "dark") {
+      document.body.setAttribute("data-theme", "dark");
+    }
+
+    // Index Abjad
+    function renderIndex() {
+      const indexBox = document.getElementById("indexBox");
+      const abjad = [...Array(26)].map((_,i)=>String.fromCharCode(65+i));
+      indexBox.innerHTML = "";
+      abjad.forEach(letter => {
+        indexBox.innerHTML += `<button class="index-btn" id="idx-${letter}" onclick="filterByIndex('${letter}')">${letter}</button>`;
+      });
+    }
+    async function filterByIndex(letter) {
+      let filtered;
+      if (mode === "indo-eng") {
+        filtered = dictionary.filter(item => item.indo.charAt(0).toUpperCase() === letter);
+      } else {
+        filtered = dictionary.filter(item => item.eng.charAt(0).toUpperCase() === letter);
+      }
+      await renderResults(filtered);
+      highlightIndex(letter);
+      document.getElementById("searchInput").value = "";
+    }
+    function highlightIndex(letter) {
+      clearIndexHighlight();
+      const btn = document.getElementById("idx-" + letter);
+      if (btn) btn.classList.add("active");
+    }
+    function clearIndexHighlight() {
+      document.querySelectorAll(".index-btn.active").forEach(btn=>btn.classList.remove("active"));
+    }
+
+    // Event listeners
+    document.getElementById('searchForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const query = document.getElementById('searchInput').value;
+      await performSearch(query);
+    });
+    document.getElementById("randomBtn").addEventListener("click", randomWord);
+    document.getElementById("toggleThemeBtn").addEventListener("click", toggleTheme);
+
+    document.getElementById("btnIndoEng").addEventListener("click", function() {
+      mode = "indo-eng";
+      this.classList.add('active');
+      document.getElementById("btnEngIndo").classList.remove('active');
+      updateModeLabel();
+      renderPopular();
+      renderIndex();
+      renderResults(dictionary);
+      clearIndexHighlight();
+    });
+    document.getElementById("btnEngIndo").addEventListener("click", function() {
+      mode = "eng-indo";
+      this.classList.add('active');
+      document.getElementById("btnIndoEng").classList.remove('active');
+      updateModeLabel();
+      renderPopular();
+      renderIndex();
+      renderResults(dictionary);
+      clearIndexHighlight();
+    });
+
+    // Initial render
+    updateModeLabel();
+    renderPopular();
+    renderHistory();
+    renderIndex();
+    renderResults(dictionary);
+
+    // Make searchWord & clearIndexHighlight global for onclick
+    window.searchWord = searchWord;
+    window.clearIndexHighlight = clearIndexHighlight;
+    window.filterByIndex = filterByIndex;
+    window.clearHistory = clearHistory;
+  </script>
+</body>
+</html>
